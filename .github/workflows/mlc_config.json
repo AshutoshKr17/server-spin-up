@@ -1,16 +1,25 @@
 {
   "ignorePatterns": [
     {
-      "pattern": "^https://github.com/your-username/server-spin-up"
+      "pattern": "^https://github.com/your-username/gpu-cloud-manager"
     },
     {
       "pattern": "^https://img.shields.io"
+    },
+    {
+      "pattern": "^http://localhost"
+    },
+    {
+      "pattern": "^https://console.vast.ai"
+    },
+    {
+      "pattern": "^https://vast.ai"
     }
   ],
   "replacementPatterns": [
     {
       "pattern": "^/",
-      "replacement": "https://github.com/your-username/server-spin-up/blob/main/"
+      "replacement": "https://github.com/your-username/gpu-cloud-manager/blob/main/"
     }
   ],
   "httpStatusCodes": {
