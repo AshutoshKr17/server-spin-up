@@ -1,0 +1,243 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  # Job to automatically label PRs
+  label-pr:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Label Hacktoberfest PRs
+        if: github.event.pull_request.created_at >= '2024-10-01T00:00:00Z' && github.event.pull_request.created_at <= '2024-10-31T23:59:59Z'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['hacktoberfest']
+            });
+
+  # Code quality and linting checks
+  lint-and-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # Uncomment if you have package.json
+      # - name: Install Node.js dependencies
+      #   run: npm ci
+
+      # - name: Run ESLint
+      #   run: npm run lint
+
+      # - name: Check Prettier formatting
+      #   run: npm run format:check
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      # Uncomment if you have Python dependencies
+      # - name: Install Python dependencies
+      #   run: |
+      #     python -m pip install --upgrade pip
+      #     pip install flake8 black isort
+      #     if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      # - name: Run Python linting
+      #   run: |
+      #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      #     black --check .
+      #     isort --check-only .
+
+  # Markdown and documentation checks
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js for markdown linting
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install markdownlint
+        run: npm install -g markdownlint-cli
+
+      - name: Lint Markdown files
+        run: markdownlint "*.md" ".github/**/*.md" --ignore node_modules
+
+      - name: Check for broken links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          config-file: '.github/workflows/mlc_config.json'
+
+  # Security scanning
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Uncomment if you have package.json
+      # - name: Run npm audit
+      #   run: npm audit --audit-level moderate
+
+      # - name: Run Snyk to check for vulnerabilities
+      #   uses: snyk/actions/node@master
+      #   env:
+      #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  # Test suite (uncomment when you have tests)
+  # test:
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-latest, windows-latest, macos-latest]
+  #       node-version: [16, 18, 20]
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: Setup Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         cache: 'npm'
+
+  #     - name: Install dependencies
+  #       run: npm ci
+
+  #     - name: Run tests
+  #       run: npm test
+
+  #     - name: Upload coverage reports
+  #       if: matrix.os == 'ubuntu-latest' && matrix.node-version == '18'
+  #       uses: codecov/codecov-action@v3
+
+  # Validate contribution guidelines
+  validate-contribution:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check PR title format
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = context.payload.pull_request.title;
+            const validPrefixes = ['feat:', 'fix:', 'docs:', 'style:', 'refactor:', 'test:', 'chore:'];
+            const isValid = validPrefixes.some(prefix => title.toLowerCase().startsWith(prefix)) || 
+                           title.startsWith('[') || 
+                           /^(add|update|fix|remove|improve|create)/i.test(title);
+            
+            if (!isValid) {
+              core.setFailed(`PR title should start with a conventional commit prefix (${validPrefixes.join(', ')}) or descriptive verb`);
+            }
+
+      - name: Check for required PR sections
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body || '';
+            const requiredSections = ['## 📋 Pull Request Description', '### 🎯 What does this PR do?'];
+            const missingSections = requiredSections.filter(section => !body.includes(section));
+            
+            if (missingSections.length > 0) {
+              core.setFailed(`PR is missing required sections: ${missingSections.join(', ')}`);
+            }
+
+  # Auto-assign reviewers for Hacktoberfest PRs
+  assign-reviewers:
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Auto-assign reviewers
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Add maintainers as reviewers (update with actual maintainer usernames)
+            const maintainers = ['m1rage']; // Add actual maintainer usernames
+            
+            try {
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                reviewers: maintainers
+              });
+            } catch (error) {
+              console.log('Could not assign reviewers:', error.message);
+            }
+
+  # Welcome new contributors
+  welcome:
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Welcome first-time contributors
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const author = context.payload.pull_request.user.login;
+            
+            // Check if this is the user's first PR to this repo
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              creator: author
+            });
+            
+            if (prs.length === 1) {
+              const welcomeMessage = `
+              🎉 **Welcome to server-spin-up, @${author}!** 
+              
+              Thank you for your first contribution! 🚀
+              
+              A few things to keep in mind:
+              - ✅ Make sure your PR follows our [contribution guidelines](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CONTRIBUTING.md)
+              - 🧪 Test your changes locally before pushing
+              - 📝 Update documentation if needed
+              - 🎃 If this is for Hacktoberfest, make sure your contribution is meaningful!
+              
+              Our maintainers will review your PR soon. Feel free to ask questions if you need help!
+              
+              Happy coding! 💻
+              `;
+              
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: welcomeMessage
+              });
+            }

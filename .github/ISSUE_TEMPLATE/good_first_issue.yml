@@ -1,0 +1,133 @@
+name: Good First Issue
+description: Submit a beginner-friendly task for new contributors
+title: "[GOOD FIRST ISSUE] "
+labels: ["good first issue", "help wanted", "beginner-friendly"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🌟 **Creating a Good First Issue for New Contributors!** 🌟
+        
+        This template helps maintainers create beginner-friendly issues that are perfect for Hacktoberfest and new contributors.
+
+  - type: input
+    id: task-title
+    attributes:
+      label: Task Title
+      description: A clear, descriptive title for the task
+      placeholder: "e.g., Add validation for server configuration files"
+    validations:
+      required: true
+
+  - type: textarea
+    id: task-description
+    attributes:
+      label: Task Description
+      description: Detailed description of what needs to be done
+      placeholder: |
+        Clearly explain:
+        - What needs to be implemented/fixed
+        - Why this task is needed
+        - What the expected outcome should be
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Define what "done" looks like for this task
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Criterion 3
+        - [ ] Tests are added/updated
+        - [ ] Documentation is updated (if needed)
+    validations:
+      required: true
+
+  - type: textarea
+    id: helpful-resources
+    attributes:
+      label: Helpful Resources
+      description: Links, documentation, or examples that will help contributors
+      placeholder: |
+        - Link to relevant documentation
+        - Similar implementations for reference
+        - Specific files to look at
+        - Learning resources for new contributors
+    validations:
+      required: false
+
+  - type: textarea
+    id: implementation-hints
+    attributes:
+      label: Implementation Hints
+      description: Step-by-step guidance or hints for implementation
+      placeholder: |
+        1. Start by looking at file X
+        2. The function should be added to Y
+        3. Don't forget to handle edge case Z
+        4. Follow the existing pattern in similar functions
+    validations:
+      required: false
+
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: Difficulty Level
+      description: How challenging is this task for a beginner?
+      options:
+        - Beginner - Perfect for first-time contributors
+        - Easy - Some basic programming knowledge needed
+        - Intermediate - Requires understanding of the codebase
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: estimated-time
+    attributes:
+      label: Estimated Time
+      description: How long might this take for a new contributor?
+      options:
+        - 1-2 hours
+        - 2-4 hours
+        - 4-8 hours
+        - 1-2 days
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: skills-needed
+    attributes:
+      label: Skills/Technologies Involved
+      description: What skills or technologies will contributors work with?
+      multiple: true
+      options:
+        - JavaScript/Node.js
+        - Configuration files (JSON/YAML)
+        - Documentation (Markdown)
+        - Testing
+        - Command Line Interface
+        - Error handling
+        - File system operations
+        - Other
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: maintainer-commitment
+    attributes:
+      label: Maintainer Commitment
+      description: As a maintainer, I commit to
+      options:
+        - label: Provide timely feedback on questions and PRs
+          required: true
+        - label: Be available to guide contributors through the process
+          required: true
+        - label: Review and merge qualifying contributions promptly
+          required: true
