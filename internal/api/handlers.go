@@ -28,7 +28,7 @@ func NewGPUHandler(gpuService *services.GPUService) *GPUHandler {
 // @Tags GPU
 // @Accept json
 // @Produce json
-// @Param provider query string false "GPU provider (vast_ai)"
+// @Param provider query string false "GPU provider (vast_ai, runpod)"
 // @Param gpu_model query string false "GPU model filter"
 // @Param min_gpu_count query int false "Minimum GPU count"
 // @Param max_price query number false "Maximum price per hour"
@@ -79,6 +79,44 @@ func (h *GPUHandler) SearchOffers(c *gin.Context) {
 	c.JSON(http.StatusOK, types.APIResponse{
 		Success: true,
 		Message: "Offers retrieved successfully",
+		Data:    offers,
+	})
+}
+
+// SearchOffersAdvanced searches for GPU offers with advanced filtering
+// @Summary Advanced search for GPU offers
+// @Description Search for GPU instances with advanced filtering options
+// @Tags GPU
+// @Accept json
+// @Produce json
+// @Param body body types.AdvancedSearchFilter true "Advanced search filters"
+// @Success 200 {object} types.APIResponse{data=[]types.GPUInstance}
+// @Failure 400 {object} types.APIResponse
+// @Failure 500 {object} types.APIResponse
+// @Router /api/v1/offers/search/advanced [post]
+func (h *GPUHandler) SearchOffersAdvanced(c *gin.Context) {
+	var filter types.AdvancedSearchFilter
+	
+	if err := c.ShouldBindJSON(&filter); err != nil {
+		c.JSON(http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error:   "Invalid request body: " + err.Error(),
+		})
+		return
+	}
+	
+	offers, err := h.gpuService.SearchOffersAdvanced(&filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, types.APIResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
+		return
+	}
+	
+	c.JSON(http.StatusOK, types.APIResponse{
+		Success: true,
+		Message: "Advanced search completed successfully",
 		Data:    offers,
 	})
 }
@@ -261,10 +299,10 @@ func (h *GPUHandler) StopInstance(c *gin.Context) {
 
 // GetProviders returns supported GPU providers
 // @Summary Get supported providers
-// @Description Get list of supported GPU cloud providers
+// @Description Get list of supported GPU cloud providers with details
 // @Tags GPU
 // @Produce json
-// @Success 200 {object} types.APIResponse{data=[]types.GPUProvider}
+// @Success 200 {object} types.APIResponse{data=[]types.ProviderInfo}
 // @Router /api/v1/providers [get]
 func (h *GPUHandler) GetProviders(c *gin.Context) {
 	providers := h.gpuService.GetSupportedProviders()
@@ -273,5 +311,47 @@ func (h *GPUHandler) GetProviders(c *gin.Context) {
 		Success: true,
 		Message: "Providers retrieved successfully",
 		Data:    providers,
+	})
+}
+
+// GetGPUModels returns information about all available GPU models
+// @Summary Get GPU models
+// @Description Get information about all available GPU models and their specifications
+// @Tags GPU
+// @Produce json
+// @Success 200 {object} types.APIResponse{data=map[string]types.GPUModel}
+// @Router /api/v1/gpu-models [get]
+func (h *GPUHandler) GetGPUModels(c *gin.Context) {
+	models := h.gpuService.GetGPUModels()
+	
+	c.JSON(http.StatusOK, types.APIResponse{
+		Success: true,
+		Message: "GPU models retrieved successfully",
+		Data:    models,
+	})
+}
+
+// GetMarketplaceStats returns marketplace statistics
+// @Summary Get marketplace statistics
+// @Description Get aggregated statistics about the GPU marketplace
+// @Tags GPU
+// @Produce json
+// @Success 200 {object} types.APIResponse{data=types.MarketplaceStats}
+// @Failure 500 {object} types.APIResponse
+// @Router /api/v1/marketplace/stats [get]
+func (h *GPUHandler) GetMarketplaceStats(c *gin.Context) {
+	stats, err := h.gpuService.GetMarketplaceStats()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, types.APIResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
+		return
+	}
+	
+	c.JSON(http.StatusOK, types.APIResponse{
+		Success: true,
+		Message: "Marketplace statistics retrieved successfully",
+		Data:    stats,
 	})
 }
