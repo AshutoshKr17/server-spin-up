@@ -15,7 +15,10 @@ type Config struct {
 	DatabaseURL string
 	
 	// GPU Provider APIs
-	VastAIAPIKey string
+	VastAIAPIKey   string
+	RunPodAPIKey   string
+	LambdaAPIKey   string
+	PaperspaceKey  string
 	
 	// Feature flags
 	EnableMetrics bool
@@ -37,7 +40,10 @@ func Load() *Config {
 		
 		DatabaseURL: getEnv("DATABASE_URL", "postgres://user:password@localhost/gpu_cloud_manager?sslmode=disable"),
 		
-		VastAIAPIKey: getEnv("VAST_AI_API_KEY", ""),
+		VastAIAPIKey:   getEnv("VAST_AI_API_KEY", ""),
+		RunPodAPIKey:   getEnv("RUNPOD_API_KEY", ""),
+		LambdaAPIKey:   getEnv("LAMBDA_API_KEY", ""),
+		PaperspaceKey:  getEnv("PAPERSPACE_API_KEY", ""),
 		
 		EnableMetrics: getBoolEnv("ENABLE_METRICS", true),
 		EnableCORS:    getBoolEnv("ENABLE_CORS", true),
