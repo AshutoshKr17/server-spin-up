@@ -18,6 +18,7 @@ func SetupRoutes(router *gin.Engine, gpuService *services.GPUService) {
 		offers := v1.Group("/offers")
 		{
 			offers.GET("/search", gpuHandler.SearchOffers)
+			offers.POST("/search/advanced", gpuHandler.SearchOffersAdvanced)
 		}
 		
 		// GPU Instances routes
@@ -31,8 +32,15 @@ func SetupRoutes(router *gin.Engine, gpuService *services.GPUService) {
 			instances.POST("/:id/stop", gpuHandler.StopInstance)
 		}
 		
-		// Providers routes
+		// Providers and Models routes
 		v1.GET("/providers", gpuHandler.GetProviders)
+		v1.GET("/gpu-models", gpuHandler.GetGPUModels)
+		
+		// Marketplace routes
+		marketplace := v1.Group("/marketplace")
+		{
+			marketplace.GET("/stats", gpuHandler.GetMarketplaceStats)
+		}
 	}
 	
 	// CORS middleware (if enabled)
